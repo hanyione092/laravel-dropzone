@@ -37,6 +37,7 @@ class HomeController extends Controller
 	// We are submitting are image along with userid and with the help of user id we are updateing our record
 	public function storeImage(Request $request)
 	{
+        return $request->all();
 		if($request->file('file')){
 
             $img = $request->file('file');

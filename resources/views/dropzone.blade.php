@@ -91,11 +91,11 @@ var myDropzone = new Dropzone("div#dropzoneDragArea", {
 	    	event.preventDefault();
 
 	    	URL = $("#demoform").attr('action');
-	    	formData = $('#demoform').serialize();
+	    	formshit = $('#demoform').serialize();
 	    	$.ajax({
 	    		type: 'POST',
 	    		url: URL,
-	    		data: formData,
+	    		data: formshit,
 	    		success: function(result){
 	    			if(result.status == "success"){
 	    				// fetch the useid 
@@ -114,12 +114,13 @@ var myDropzone = new Dropzone("div#dropzoneDragArea", {
 	    this.on('sending', function(file, xhr, formData){
 	    //fetch the user id from hidden input field and send that userid with our image
 	      let userid = document.getElementById('userid').value;
-		   formData.append('userid', userid);
+		   formData.append('userid', userid); //this form data is the form data of the dropzone, not the formshit
 		});
 		
 	    this.on("success", function (file, response) {
+			console.log(response)
             //reset the form
-            $('#demoform')[0].reset();
+            // $('#demoform')[0].reset();
             //reset dropzone
             $('.dropzone-previews').empty();
         });
