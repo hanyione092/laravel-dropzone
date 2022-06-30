@@ -6,61 +6,64 @@ use Illuminate\Http\Request;
 use http\Env\Response;
 use Illuminate\Support\Facades\Hash;
 use App\User; 
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+
 class HomeController extends Controller
 {
 
-	public function dropzoneform()
+	public function index()
 	{
 		return view('dropzone');
 	}
 
-
-	public function storeData(Request $request)
+	public function store(Request $request)
 	{
-		try {
-			$user = new User;
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->photo = '';
-            $user->password = Hash::make('123456789');
-            $user->save();
-            $user_id = $user->id; // this give us the last inserted record id
-		}
-		catch (\Exception $e) {
-			return response()->json(['status'=>'exception', 'msg'=>$e->getMessage()]);
-		}
-		return response()->json(['status'=>"success", 'user_id'=>$user_id]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'email' => 'required|email',
+        ]);
+
+        //400 -> Bad Request/Data
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'photo' => null,
+            'password' => Hash::make('password')
+        ]);
+
+        return response()->json(['userID'=>$user->id], 200);
 	}
-
-
 
 	// We are submitting are image along with userid and with the help of user id we are updateing our record
 	public function storeImage(Request $request)
 	{
-        return $request->all();
-		if($request->file('file')){
+		if($request->file('file'))
+        {
+            try {
+                $image = $request->file('file');
+                $imageName = strtotime(now()).rand(11111,99999).'.'.$image->getClientOriginalExtension();
+    
+                $original_name = $image->getClientOriginalName();
+    
+                $request->file('file')->storeAs('uploads/images', $imageName, 'product_storage');
 
-            $img = $request->file('file');
-
-            //here we are geeting userid alogn with an image
-            $userid = $request->userid;
-
-            $imageName = strtotime(now()).rand(11111,99999).'.'.$img->getClientOriginalExtension();
-            $user_image = new User();
-            $original_name = $img->getClientOriginalName();
-            $user_image->image = $imageName;
-
-            if(!is_dir(public_path() . '/uploads/images/')){
-                mkdir(public_path() . '/uploads/images/', 0777, true);
+                // we are updating our image column with the help of user id
+                $user = User::where('id', $request->userID)->update([
+                    'photo' => $imageName
+                ]);
+    
+                return response()->json(['status'=>"success"], 200);
+            } catch (\Throwable $th) {
+                return $th;
+                return response()->json($th, 409);
             }
-
-        $request->file('file')->move(public_path() . '/uploads/images/', $imageName);
-
-        // we are updating our image column with the help of user id
-        $user_image->where('id', $userid)->update(['photo'=>$imageName]);
-
-        return response()->json(['status'=>"success",'imgdata'=>$original_name,'userid'=>$userid]);
         }
+        return response()->json(['status'=>"success"], 409);
 	}
 
 }

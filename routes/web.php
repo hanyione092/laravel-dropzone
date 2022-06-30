@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,11 +17,11 @@ Route::get('/', function () {
 });
 
 //Route form displaying our form
-Route::get('/dropzoneform', 'HomeController@dropzoneform');
+Route::get('/dropzone', [HomeController::class, 'index'])->name('dropzone');
 
-//Rout for submitting the form datat
-Route::post('/storedata', 'HomeController@storeData')->name('form.data');
+//Rout for submitting the form data
+Route::post('/dropzone', [HomeController::class, 'store']);
 
 //Route for submitting dropzone data
-Route::post('/store-image', 'HomeController@storeImage');
+Route::post('/store-image', [HomeController::class, 'storeImage'])->name('store-image');
 ?>
